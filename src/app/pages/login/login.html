@@ -1,0 +1,36 @@
+<div class="login-page">
+  <span class="float" style="top: 10%; left: 8%">🍩</span>
+  <span class="float" style="top: 70%; left: 12%; animation-delay: 2s">🍬</span>
+  <span class="float" style="top: 20%; right: 10%; animation-delay: 4s">🧁</span>
+  <span class="float" style="bottom: 12%; right: 14%; animation-delay: 1s">🍭</span>
+
+  <form class="login-card" (ngSubmit)="submit()" autocomplete="on">
+    <div class="logo big">🍮</div>
+    <h1 class="brand-title">Khova Sweet</h1>
+    <p class="sub">Sign in to manage your sales</p>
+
+    @if (error()) {
+      <div class="error-box">{{ error() }}</div>
+    }
+
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" name="username" [(ngModel)]="username" required autocomplete="username" placeholder="e.g. admin" autofocus />
+    </div>
+    <div class="field pw">
+      <label for="password">Password</label>
+      <input
+        id="password"
+        name="password"
+        [type]="showPassword() ? 'text' : 'password'"
+        [(ngModel)]="password"
+        required
+        autocomplete="current-password"
+        placeholder="••••••••"
+      />
+      <button type="button" class="eye" title="Show password" (click)="showPassword.set(!showPassword())">👁️</button>
+    </div>
+    <button class="btn" type="submit" [disabled]="busy()">{{ busy() ? 'Signing in…' : 'Login 🔐' }}</button>
+    <p class="foot">Authorised staff only · Designed &amp; Developed by Ashwini</p>
+  </form>
+</div>

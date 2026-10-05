@@ -1,0 +1,119 @@
+<app-period-filter />
+
+<div class="grid2">
+  <section class="card">
+    <h2>
+      <span>📊 Profit &amp; Loss Statement</span>
+      @if (s().net >= 0) {
+        <span class="status good">▲ Profit</span>
+      } @else {
+        <span class="status bad">▼ Loss</span>
+      }
+    </h2>
+    <p class="muted small period">
+      @if (s().firstDate) {
+        {{ s().firstDate | fullDate }} – {{ s().lastDate | fullDate }} · {{ s().saleDays }} sales days
+      } @else {
+        No data for this period
+      }
+    </p>
+    <table class="pl">
+      <tbody>
+        <tr class="head"><td>💰 Sales</td><td></td></tr>
+        <tr class="indent"><td>Cash sales</td><td class="num">{{ s().cash | inr }}</td></tr>
+        <tr class="indent"><td>PhonePe sales</td><td class="num">{{ s().pp | inr }}</td></tr>
+        @if (s().other) {
+          <tr class="indent"><td>Other sales</td><td class="num">{{ s().other | inr }}</td></tr>
+        }
+        <tr class="total"><td>Total Sales</td><td class="num">{{ s().sales | inr }}</td></tr>
+
+        <tr><td>🛒 Less: Khova / stock purchase</td><td class="num">−{{ s().purchase | inr }}</td></tr>
+        <tr class="total">
+          <td>Gross Profit <span class="muted">({{ pct(s().gross, s().sales) }})</span></td>
+          <td class="num">{{ s().gross | inr }}</td>
+        </tr>
+
+        <tr class="head"><td>🧾 Less: Daily expenses</td><td></td></tr>
+        @for (g of s().opLines; track g.name) {
+          <tr class="indent"><td>{{ g.name }}</td><td class="num">−{{ g.amount | inr }}</td></tr>
+        }
+        <tr class="total"><td>Total daily expenses</td><td class="num">−{{ s().exp | inr }}</td></tr>
+
+        <tr><td>👤 Less: Salary</td><td class="num">−{{ s().salary | inr }}</td></tr>
+        @if (s().otherPay) {
+          <tr><td>📦 Less: Other payments</td><td class="num">−{{ s().otherPay | inr }}</td></tr>
+        }
+
+        <tr class="grand">
+          <td>
+            {{ s().net >= 0 ? '▲ Net Profit' : '▼ Net Loss' }}
+            <span class="muted small">({{ pct(s().net, s().sales) }} margin)</span>
+          </td>
+          <td class="num" [class.pos]="s().net >= 0" [class.neg]="s().net < 0">{{ s().net | inr }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="muted small note">ℹ️ Khova purchases count as cost on the day they are paid. Unsold stock is not deducted.</p>
+  </section>
+
+  <section class="card">
+    <h2>
+      <span>🗓️ Month-wise Profit / Loss</span>
+      <button type="button" class="btn sm no-print" (click)="print()">🖨 Print report</button>
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th><th class="num">Sales</th><th class="num">Purchase</th><th class="num">Expenses</th>
+            <th class="num">Salary</th><th class="num">Other</th><th class="num">Net</th><th class="num">Margin</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of data.monthly(); track m.key) {
+            <tr>
+              <td><b>{{ m.key | monthName }}</b></td>
+              <td class="num">{{ m.sales | inr }}</td>
+              <td class="num">{{ m.purchase | dash }}</td>
+              <td class="num">{{ m.exp | dash }}</td>
+              <td class="num">{{ m.salary | dash }}</td>
+              <td class="num">{{ m.other | dash }}</td>
+              <td class="num" [class.neg]="m.net < 0"><b>{{ m.net | inr }}</b></td>
+              <td class="num">{{ pct(m.net, m.sales) }}</td>
+              <td>
+                @if (m.net >= 0) {
+                  <span class="status good">▲ Profit</span>
+                } @else {
+                  <span class="status bad">▼ Loss</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="9" class="empty">No data 🍩</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="section-title">🧾 Where the money went</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Expense</th><th>Type</th><th class="num">Amount</th><th class="num">% of Sales</th></tr>
+        </thead>
+        <tbody>
+          @for (g of s().breakdown; track g.category + g.name) {
+            <tr>
+              <td>{{ g.name }}</td>
+              <td><span class="tag {{ g.category }}">{{ categoryLabels[g.category] }}</span></td>
+              <td class="num"><b>{{ g.amount | inr }}</b></td>
+              <td class="num">{{ pct(g.amount, s().sales) }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="empty">No expenses 🧁</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

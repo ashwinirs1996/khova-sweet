@@ -1,11 +1,17 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { ToastService } from './core/toast.service';
 
 @Component({
   selector: 'app-root',
-  imports: [],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  imports: [RouterOutlet],
+  template: `
+    <router-outlet />
+    @if (toast.message(); as t) {
+      <div class="toast" [class.error]="t.error">{{ t.text }}</div>
+    }
+  `,
 })
 export class App {
-  protected readonly title = signal('khova-sweet');
+  protected readonly toast = inject(ToastService);
 }

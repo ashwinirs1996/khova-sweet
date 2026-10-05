@@ -1,0 +1,181 @@
+<section class="card">
+  <h2>
+    <span>👤 Employee &amp; Salary</span>
+    @if (!editing()) {
+      <button type="button" class="btn sm no-print" (click)="openEditor()">
+        {{ data.employee() ? '✏️ Edit details' : '➕ Add employee' }}
+      </button>
+    }
+  </h2>
+
+  @if (editing()) {
+    <form class="emp-form" (ngSubmit)="saveEmployee()" autocomplete="off">
+      <div class="row3">
+        <div class="field"><label for="empName">Name</label><input id="empName" name="empName" required [(ngModel)]="empName" /></div>
+        <div class="field"><label for="empPhone">Phone</label><input id="empPhone" name="empPhone" type="tel" [(ngModel)]="empPhone" /></div>
+        <div class="field"><label for="empRole">Role</label><input id="empRole" name="empRole" placeholder="e.g. Shop staff" [(ngModel)]="empRole" /></div>
+        <div class="field">
+          <label for="empSalary">Monthly Salary (₹)</label>
+          <input id="empSalary" name="empSalary" type="number" min="0" step="1" required [(ngModel)]="empSalary" />
+        </div>
+        <div class="field"><label for="empJoin">Joining Date</label><input id="empJoin" name="empJoin" type="date" required [(ngModel)]="empJoin" /></div>
+      </div>
+      <button class="btn sm" type="submit">💾 Save</button>
+      <button class="btn sm ghost" type="button" (click)="editing.set(false)">Cancel</button>
+    </form>
+  }
+
+  @if (data.employee(); as emp) {
+    <div class="emp-head">
+      <div class="avatar">{{ emp.name.charAt(0).toUpperCase() }}</div>
+      <div>
+        <div class="emp-name">{{ emp.name }}</div>
+        <div class="muted small">
+          {{ emp.role || 'Employee' }}
+          @if (emp.phone) {
+            · 📞 {{ emp.phone }}
+          }
+          · Joined {{ emp.join_date | fullDate }}
+        </div>
+      </div>
+    </div>
+
+    @if (data.salary(); as sv) {
+      <div class="mini-stats">
+        <div class="mini"><div class="label">💼 Monthly Salary</div><div class="value">{{ emp.monthly_salary | inr }}</div></div>
+        <div class="mini"><div class="label">➕ Salary Added</div><div class="value plus">{{ sv.totSalary | inr }}</div></div>
+        <div class="mini"><div class="label">➖ Deductions</div><div class="value minus">{{ sv.totDed ? '−' : '' }}{{ sv.totDed | inr }}</div></div>
+        <div class="mini"><div class="label">🧮 Net Payable</div><div class="value">{{ sv.payable | inr }}</div></div>
+        <div class="mini"><div class="label">💸 Total Paid</div><div class="value">{{ sv.paid | inr }}</div></div>
+        <div class="mini">
+          <div class="label">⚖️ Balance</div>
+          <div class="value balance">
+            <ng-container *ngTemplateOutlet="balanceTpl; context: { $implicit: sv.balance }" />
+          </div>
+        </div>
+      </div>
+      <p class="muted small">Balance = salary added − deductions − paid.</p>
+
+      <div class="sal-panel no-print">
+        <div class="tabs">
+          <button type="button" class="tab" [class.active]="action() === 'salary'" (click)="setAction('salary')">➕ Add Salary</button>
+          <button type="button" class="tab" [class.active]="action() === 'deduction'" (click)="setAction('deduction')">➖ Deduct</button>
+          <button type="button" class="tab" [class.active]="action() === 'payment'" (click)="setAction('payment')">💸 Pay Salary</button>
+        </div>
+        <form (ngSubmit)="submit()" autocomplete="off">
+          <div class="row3">
+            @if (action() === 'payment') {
+              <div class="field"><label for="payDate">Payment Date</label><input id="payDate" name="payDate" type="date" [(ngModel)]="payDate" /></div>
+            } @else {
+              <div class="field"><label for="month">Month</label><input id="month" name="month" type="month" [(ngModel)]="month" /></div>
+            }
+            <div class="field">
+              <label for="amount">Amount (₹)</label>
+              <input id="amount" name="amount" type="number" min="1" step="1" required [(ngModel)]="amount" />
+            </div>
+            @if (action() === 'payment') {
+              <div class="field">
+                <label for="payMode">Paid via</label>
+                <select id="payMode" name="payMode" [(ngModel)]="payMode">
+                  <option value="cash">💵 Cash</option>
+                  <option value="phonepe">📱 PhonePe</option>
+                  <option value="other">🔖 Other</option>
+                </select>
+              </div>
+            }
+            <div class="field">
+              <label for="note">{{ action() === 'deduction' ? 'Reason' : 'Note' }}</label>
+              <input
+                id="note"
+                name="note"
+                list="salReasons"
+                [placeholder]="action() === 'deduction' ? 'e.g. Leave 2 days' : 'optional'"
+                [(ngModel)]="note"
+              />
+              <datalist id="salReasons">
+                <option value="Leave"></option>
+                <option value="Half day"></option>
+                <option value="Advance adjustment"></option>
+                <option value="Late coming"></option>
+                <option value="Damage / loss"></option>
+              </datalist>
+            </div>
+          </div>
+          <button class="btn sm" type="submit" [disabled]="saving()">{{ buttonLabels[action()] }}</button>
+        </form>
+      </div>
+
+      <div class="emp-cols">
+        <div>
+          <h3 class="section-title">🗓️ Month-wise Salary</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Month</th><th class="num">Salary</th><th class="num">Deduction</th><th class="num">Payable</th><th class="num">Paid</th><th>Balance</th></tr>
+              </thead>
+              <tbody>
+                @for (m of sv.months; track m.key) {
+                  <tr>
+                    <td><b>{{ m.key | monthName }}</b></td>
+                    <td class="num">{{ m.salary | dash }}</td>
+                    <td class="num" [class.minus]="m.deduction">{{ m.deduction ? '−' : '' }}{{ m.deduction | dash }}</td>
+                    <td class="num"><b>{{ m.payable | inr }}</b></td>
+                    <td class="num">{{ m.paid | dash }}</td>
+                    <td><ng-container *ngTemplateOutlet="balanceTpl; context: { $implicit: m.balance }" /></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="6" class="empty">Add a month's salary above ☝️</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3 class="section-title">📒 Salary Ledger</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>When</th><th>Type</th><th>Details</th><th class="num">Amount</th><th class="no-print"></th></tr>
+              </thead>
+              <tbody>
+                @for (l of sv.ledger; track l.table + l.id) {
+                  <tr>
+                    <td>{{ l.when }}</td>
+                    <td>
+                      @switch (l.kind) {
+                        @case ('salary') { <span class="tag credit">➕ Salary</span> }
+                        @case ('deduction') { <span class="tag deduct">➖ Deduction</span> }
+                        @default { <span class="tag paid">💸 Paid</span> }
+                      }
+                    </td>
+                    <td>{{ l.text }}</td>
+                    <td class="num">
+                      <b [class.plus]="l.kind === 'salary'" [class.minus]="l.kind === 'deduction'">
+                        {{ l.kind === 'salary' ? '+' : l.kind === 'deduction' ? '−' : '' }}{{ l.amount | inr }}
+                      </b>
+                    </td>
+                    <td class="no-print"><button type="button" class="icon-btn" title="Delete" (click)="removeLedger(l)">🗑️</button></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="5" class="empty">No entries yet</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  } @else if (!editing()) {
+    <p class="empty">No employee added yet — click “➕ Add employee”.</p>
+  }
+</section>
+
+<ng-template #balanceTpl let-b>
+  @if (b > 0.5) {
+    <span class="status bad">Due {{ b | inr }}</span>
+  } @else if (b < -0.5) {
+    <span class="status info">Advance {{ abs(b) | inr }}</span>
+  } @else {
+    <span class="status good">✔ Settled</span>
+  }
+</ng-template>

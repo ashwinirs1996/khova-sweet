@@ -1,0 +1,121 @@
+<app-period-filter />
+
+<section class="stats">
+  <div class="stat" style="--c: #e8508b">
+    <div class="icon">💰</div>
+    <div class="label">Total Sales</div>
+    <div class="value">{{ s().sales | inr }}</div>
+    <div class="sub">Cash {{ s().cash | inr }} · PhonePe {{ s().pp | inr }} · Other {{ s().other | inr }}</div>
+  </div>
+  <div class="stat" style="--c: #ea580c">
+    <div class="icon">🧾</div>
+    <div class="label">Daily Expenses</div>
+    <div class="value">{{ s().exp | inr }}</div>
+    <div class="sub">Cash {{ s().cashExp | inr }} · PhonePe {{ s().ppExp | inr }}</div>
+  </div>
+  <div class="stat" style="--c: #16a34a">
+    <div class="icon">📈</div>
+    <div class="label">Sales − Expenses</div>
+    <div class="value" [class.neg]="s().opProfit < 0">{{ s().opProfit | inr }}</div>
+    <div class="sub">before purchases &amp; salary</div>
+  </div>
+  <div class="stat" style="--c: #8b5cf6">
+    <div class="icon">🛒</div>
+    <div class="label">Purchases &amp; Salary</div>
+    <div class="value">{{ s().extra | inr }}</div>
+    <div class="sub">
+      Purchase {{ s().purchase | inr }} · Salary {{ s().salary | inr }}
+      @if (s().otherPay) {
+        · Other {{ s().otherPay | inr }}
+      }
+    </div>
+  </div>
+  <div class="stat hero">
+    <div class="icon">✨</div>
+    <div class="label">{{ s().net >= 0 ? '▲ Net Profit' : '▼ Net Loss' }}</div>
+    <div class="value">{{ abs(s().net) | inr }}</div>
+    <div class="sub">{{ pct(s().net, s().sales) }} margin · after all payments</div>
+  </div>
+  <div class="stat" style="--c: #16a34a">
+    <div class="icon">💵</div>
+    <div class="label">Cash in Hand</div>
+    <div class="value" [class.neg]="s().cashBalance < 0">{{ s().cashBalance | inr }}</div>
+    <div class="sub">in {{ s().cash | inr }} · out {{ s().cashOut | inr }}</div>
+  </div>
+  <div class="stat" style="--c: #5f259f">
+    <div class="icon">📱</div>
+    <div class="label">PhonePe Balance</div>
+    <div class="value" [class.neg]="s().ppBalance < 0">{{ s().ppBalance | inr }}</div>
+    <div class="sub">in {{ s().pp | inr }} · out {{ s().ppOut | inr }}</div>
+  </div>
+  <div class="stat" style="--c: #0ea5e9">
+    <div class="icon">📊</div>
+    <div class="label">Avg Sales / Day</div>
+    <div class="value">{{ s().avg | inr }}</div>
+    <div class="sub">
+      @if (s().best; as best) {
+        {{ s().saleDays }} days · best {{ best.date | dayDate }} {{ best.sales | inr }}
+      } @else {
+        no sales yet
+      }
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>
+    <span>📅 Day-wise Summary</span>
+    <button type="button" class="btn sm no-print" (click)="exportCsv()">⬇ CSV</button>
+  </h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Day</th><th>Date</th><th class="num">Cash</th><th class="num">PhonePe</th><th class="num">Other</th>
+          <th class="num">Total Sales</th><th class="num">Cash Exp.</th><th class="num">PP Exp.</th>
+          <th class="num">Total Exp.</th><th class="num">Net</th><th class="no-print"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of data.rows(); track r.date) {
+          <tr>
+            <td><span class="day">{{ r.day }}</span></td>
+            <td>{{ r.date | dayDate }}</td>
+            <td class="num">{{ r.cash | dash }}</td>
+            <td class="num">{{ r.pp | dash }}</td>
+            <td class="num">{{ r.other | dash }}</td>
+            <td class="num"><b>{{ r.sales | inr }}</b></td>
+            <td class="num">{{ r.cashExp | dash }}</td>
+            <td class="num">{{ r.ppExp | dash }}</td>
+            <td class="num">{{ r.exp | inr }}</td>
+            <td class="num" [class.neg]="r.net < 0"><b>{{ r.net | inr }}</b></td>
+            <td class="no-print">
+              @if (r.hasSale) {
+                <button type="button" class="icon-btn" title="Edit" (click)="edit(r.date)">✏️</button>
+                <button type="button" class="icon-btn" title="Delete day sales" (click)="remove(r.date)">🗑️</button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="11" class="empty">No entries for this period 🍩</td></tr>
+        }
+      </tbody>
+      @if (data.rows().length) {
+        <tfoot>
+          <tr>
+            <td colspan="2">TOTAL</td>
+            <td class="num">{{ s().cash | inr }}</td>
+            <td class="num">{{ s().pp | inr }}</td>
+            <td class="num">{{ s().other | inr }}</td>
+            <td class="num">{{ s().sales | inr }}</td>
+            <td class="num">{{ s().cashExp | inr }}</td>
+            <td class="num">{{ s().ppExp | inr }}</td>
+            <td class="num">{{ s().exp | inr }}</td>
+            <td class="num">{{ s().opProfit | inr }}</td>
+            <td class="no-print"></td>
+          </tr>
+        </tfoot>
+      }
+    </table>
+  </div>
+</section>

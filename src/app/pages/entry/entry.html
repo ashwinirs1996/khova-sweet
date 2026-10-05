@@ -1,0 +1,123 @@
+<div class="grid">
+  <section class="card">
+    <div class="tabs">
+      <button type="button" class="tab" [class.active]="tab() === 'sales'" (click)="tab.set('sales')">💰 Day Sales</button>
+      <button type="button" class="tab" [class.active]="tab() === 'expense'" (click)="tab.set('expense')">🧾 Expense / Payment</button>
+    </div>
+
+    @if (tab() === 'sales') {
+      <form (ngSubmit)="saveDay()" autocomplete="off">
+        <div class="field">
+          <label for="sDate">Date</label>
+          <input id="sDate" name="sDate" type="date" required [ngModel]="sDate" (ngModelChange)="sDate = $event; fillDay()" />
+        </div>
+        <div class="hint">
+          @if (existingDay()) {
+            ✏️ {{ sDate | dayDate }} already saved — saving will update it
+          }
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="sCash">💵 Cash (₹)</label>
+            <input id="sCash" name="sCash" type="number" min="0" step="0.01" placeholder="0" [(ngModel)]="sCash" />
+          </div>
+          <div class="field">
+            <label for="sPP">📱 PhonePe (₹)</label>
+            <input id="sPP" name="sPP" type="number" min="0" step="0.01" placeholder="0" [(ngModel)]="sPP" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="sOther">🔖 Other (₹)</label>
+            <input id="sOther" name="sOther" type="number" min="0" step="0.01" placeholder="0" [(ngModel)]="sOther" />
+          </div>
+          <div class="field">
+            <label for="sNote">Note</label>
+            <input id="sNote" name="sNote" placeholder="optional" [(ngModel)]="sNote" />
+          </div>
+        </div>
+        <div class="summary"><span>Day Total</span><b>{{ dayTotal() | inr }}</b></div>
+        <button class="btn" type="submit" [disabled]="saving()">
+          {{ existingDay() ? 'Update Day Sales ✏️' : 'Save Day Sales 🎉' }}
+        </button>
+      </form>
+    } @else {
+      <form (ngSubmit)="saveExpense()" autocomplete="off">
+        <div class="row">
+          <div class="field">
+            <label for="eDate">Date</label>
+            <input id="eDate" name="eDate" type="date" required [(ngModel)]="eDate" />
+          </div>
+          <div class="field">
+            <label for="eAmount">Amount (₹)</label>
+            <input id="eAmount" name="eAmount" type="number" min="0.01" step="0.01" placeholder="0" required [(ngModel)]="eAmount" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="eCat">Type</label>
+            <select id="eCat" name="eCat" [ngModel]="eCat" (ngModelChange)="eCat = $event; onCategoryChange()">
+              <option value="operating">Daily expense</option>
+              <option value="purchase">Khova / stock purchase</option>
+              <option value="salary">Salary</option>
+              <option value="other">Other payment</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="eMode">Paid via</label>
+            <select id="eMode" name="eMode" [(ngModel)]="eMode">
+              <option value="cash">💵 Cash</option>
+              <option value="phonepe">📱 PhonePe</option>
+              <option value="other">🔖 Other</option>
+            </select>
+          </div>
+        </div>
+        @if (eCat === 'salary') {
+          <div class="field">
+            <label for="eEmp">Employee</label>
+            <select id="eEmp" name="eEmp" [(ngModel)]="eEmp">
+              @for (emp of data.employees(); track emp.id) {
+                <option [ngValue]="emp.id">{{ emp.name }}</option>
+              }
+            </select>
+          </div>
+        }
+        <div class="field">
+          <label for="eDesc">Description</label>
+          <input id="eDesc" name="eDesc" placeholder="e.g. Petrol, Police, Spoons" list="descList" [(ngModel)]="eDesc" />
+          <datalist id="descList">
+            @for (d of data.descriptions(); track d) {
+              <option [value]="d"></option>
+            }
+          </datalist>
+        </div>
+        <button class="btn" type="submit" [disabled]="saving()">Save Expense 🧾</button>
+      </form>
+    }
+  </section>
+
+  <section class="card">
+    <h2><span>🧾 All Expenses &amp; Payments</span><span class="muted small">{{ data.expenses().length }} entries</span></h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Type</th><th>Paid via</th><th>Description</th><th class="num">Amount</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (x of data.expenses(); track x.id) {
+            <tr>
+              <td>{{ x.expense_date | dayDate }}</td>
+              <td><span class="tag {{ x.category }}">{{ categoryLabels[x.category] }}</span></td>
+              <td>{{ modeLabels[x.payment_mode] }}</td>
+              <td>{{ x.description || '—' }}</td>
+              <td class="num"><b>{{ x.amount | inr }}</b></td>
+              <td><button type="button" class="icon-btn" title="Delete" (click)="removeExpense(x)">🗑️</button></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="empty">No expenses yet 🧁</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,88 @@
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.float {
+  position: fixed;
+  font-size: 42px;
+  opacity: 0.25;
+  animation: drift 9s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes drift {
+  50% {
+    transform: translateY(-25px) rotate(12deg);
+  }
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 36px 30px;
+  box-shadow: 0 20px 50px rgba(232, 80, 139, 0.18);
+  position: relative;
+  z-index: 1;
+}
+
+.logo.big {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 14px;
+  font-size: 36px;
+  border-radius: 22px;
+}
+
+.brand-title {
+  text-align: center;
+  font-size: 32px;
+}
+
+.sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  margin: 4px 0 26px;
+}
+
+.pw {
+  position: relative;
+}
+
+.eye {
+  position: absolute;
+  right: 12px;
+  bottom: 11px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.btn {
+  margin-top: 6px;
+}
+
+.error-box {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.foot {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 22px;
+}

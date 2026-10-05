@@ -1,0 +1,33 @@
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">🍮</div>
+      <div>
+        <h1 class="brand-title">Khova Sweet</h1>
+        <p>Day-wise sales &amp; expense tracker</p>
+      </div>
+    </div>
+    <div class="user-box no-print">
+      <span class="user-chip">👋 Hi, <b>{{ auth.username() }}</b></span>
+      <button type="button" class="pill-btn" (click)="toggleTheme()">{{ theme() === 'dark' ? '☀️ Light' : '🌙 Dark' }}</button>
+      <button type="button" class="pill-btn" (click)="auth.logout()">🚪 Logout</button>
+    </div>
+  </header>
+
+  <nav class="nav no-print">
+    <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">📊 Dashboard</a>
+    <a routerLink="/entry" routerLinkActive="on">➕ Add Entry</a>
+    <a routerLink="/profit" routerLinkActive="on">📈 Profit &amp; Loss</a>
+    <a routerLink="/salary" routerLinkActive="on">👤 Salary</a>
+  </nav>
+
+  @if (data.error()) {
+    <div class="card error-card">⚠️ Could not load data: {{ data.error() }}</div>
+  } @else if (!data.loaded()) {
+    <div class="card empty">Loading… 🍮</div>
+  }
+
+  <router-outlet />
+
+  <footer>Made with 💖 · Designed &amp; Developed by Ashwini</footer>
+</div>
